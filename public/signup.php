@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Generate OTP and expiry
         $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+15 minutes')); // OTP valid for 15 minutes
+        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
 
         // Insert user into the database with OTP and expiry time
         $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
