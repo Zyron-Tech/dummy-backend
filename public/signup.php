@@ -2,7 +2,7 @@
 // public/signup.php
 
 require '../config/db.php';
-require '../config/mail.php'; // Include your mail configuration
+require '../config/mail.php'; // Include Brevo configuration
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
