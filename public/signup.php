@@ -1,48 +1,32 @@
 <?php
 // public/signup.php
 
-// Include the database connection file
 require '../config/db.php';
+require '../config/mail.php'; // Include your mail configuration
 
-// Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get and sanitize user input
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
+    $username = $_POST['username'];
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $email = $_POST['email'];
+    
+    // Generate OTP
+    $otp = rand(100000, 999999);
+    $otp_expiry = date('Y-m-d H:i:s', strtotime('+15 minutes')); // OTP valid for 15 minutes
 
-    // Basic validation
-    if (empty($username) || empty($password)) {
-        echo json_encode(['status' => 'error', 'message' => 'Username and password are required']);
-        exit;
-    }
+    // Save user details with OTP in the database
+    $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
+    $stmt->execute([
+        'username' => $username,
+        'password' => $password,
+        'email' => $email,
+        'otp' => $otp,
+        'otp_expiry' => $otp_expiry
+    ]);
 
-    // Hash the password
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    // Send OTP to user email
+    sendOtpEmail($email, $otp);
 
-    // Prepare and execute the SQL statement
-    try {
-        // Check if the username already exists
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = :username");
-        $stmt->execute(['username' => $username]);
-        $userCount = $stmt->fetchColumn();
-
-        if ($userCount > 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Username already exists']);
-            exit;
-        }
-
-        // Insert the new user into the database
-        $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
-        $stmt->execute([
-            'username' => $username,
-            'password' => $hashedPassword
-        ]);
-
-        echo json_encode(['status' => 'success', 'message' => 'Signup successful!']);
-    } catch (PDOException $e) {
-        // Handle database errors
-        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-    }
+    echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for OTP verification.']);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }
