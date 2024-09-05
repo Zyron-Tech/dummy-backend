@@ -10,9 +10,10 @@
             "name": "Peace Mathew",
             "email": "zyrontech101@gmail.com"
         }
-    ],
+    },
     "require": {
-        "sendinblue/api-v3-sdk": "^8.4",
-        "brevo/brevo-php": "^1.0"
-    }
+        "sendinblue/api-v3-sdk": "^8.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
