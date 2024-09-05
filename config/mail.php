@@ -1,13 +1,12 @@
 <?php
 // config/mail.php
 
-require 'vendor/autoload.php'; // Ensure Brevo SDK is installed via Composer
+require 'vendor/autoload.php';
 
-use Brevo\Client\ApiException;
-use Brevo\Client\Api\TransactionalEmailsApi;
-use Brevo\Client\Model\SendSmtpEmail;
-use Brevo\Client\Configuration;
-use Brevo\Client\ApiClient;
+use SendinBlue\Client\Api\TransactionalEmailsApi;
+use SendinBlue\Client\Configuration;
+use GuzzleHttp\Client;
+
 
 function sendOtpEmail($email, $otp) {
     $apiKey = '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'; // Replace with your Brevo API key
@@ -21,7 +20,7 @@ function sendOtpEmail($email, $otp) {
         'to' => [['email' => $email]],
         'subject' => 'Your OTP Code',
         'htmlContent' => "<p>Your OTP code is: <b>$otp</b></p>",
-        'sender' => ['email' => 'your-email@example.com'] // Your sender email
+        'sender' => ['email' => 'mthwpeace@gmail.com'] // Your sender email
     ]);
 
     try {
