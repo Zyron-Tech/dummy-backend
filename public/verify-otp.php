@@ -1,5 +1,6 @@
 <?php
-require '../config/db.php'; // Database connection setup
+require '../config/db.php';
+require '../config/mail.php'; // Database connection setup
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if POST parameters are set
