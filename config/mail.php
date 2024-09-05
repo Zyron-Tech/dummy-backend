@@ -1,56 +1,31 @@
 <?php
-// config/mail.php
+require __DIR__ . '/../vendor/autoload.php';
 
-require __DIR__ . '/../vendor/autoload.php';  // Ensure this path correctly points to your autoload.php
+use Brevo\Client\Api\TransactionalEmailsApi;
+use Brevo\Client\Configuration;
 
-use SendinBlue\Client\Configuration;
-use SendinBlue\Client\Api\TransactionalEmailsApi;
-use GuzzleHttp\Client;
-use SendinBlue\Client\Model\SendSmtpEmail;
-
-// Configure API key authorization: api-key
+// Your Brevo configuration
 $config = Configuration::getDefaultConfiguration()->setApiKey('api-key', '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');
 
-// Create an instance of the API client
+// Initialize the Brevo API client
 $apiInstance = new TransactionalEmailsApi(
-    new Client(),
+    new GuzzleHttp\Client(),
     $config
 );
 
-/**
- * Function to send an OTP email
- *
- * @param string $toEmail The recipient's email address
- * @param string $toName The recipient's name
- * @param string $otp The OTP to send
- * @return bool
- */
-function sendOtpEmail($toEmail, $toName, $otp)
-{
-    global $apiInstance;
+// Sample email variables (replace with actual values)
+$testEmail = 'test@example.com'; // Replace with actual email
+$testName = 'Test User'; // Replace with actual name
+$testOtp = '123456'; // Replace with actual OTP
 
-    // Define the email content
-    $email = new SendSmtpEmail([
+try {
+    $result = $apiInstance->sendTransacEmail([
+        'to' => [['email' => $testEmail, 'name' => $testName]],
         'subject' => 'Your OTP Code',
-        'sender' => ['name' => 'Your Company', 'email' => 'yourcompany@example.com'],
-        'to' => [['email' => $toEmail, 'name' => $toName]],
-        'htmlContent' => "<h1>Your OTP Code</h1><p>Your OTP is <strong>$otp</strong>. Please use this to complete your registration.</p>"
+        'htmlContent' => '<p>Your OTP code is: ' . $testOtp . '</p>',
     ]);
-
-    try {
-        // Send the email
-        $result = $apiInstance->sendTransacEmail($email);
-        return true;
-    } catch (Exception $e) {
-        // Log the error
-        error_log('Exception when sending OTP email: ' . $e->getMessage());
-        return false;
-    }
-}
-
-if (sendOtpEmail($testEmail, $testName, $testOtp)) {
-    echo 'OTP email sent successfully.';
-} else {
-    echo 'Failed to send OTP email.';
+    echo "OTP email sent successfully.";
+} catch (Exception $e) {
+    echo "Failed to send OTP email: " . $e->getMessage();
 }
 ?>
