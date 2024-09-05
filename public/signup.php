@@ -1,32 +1,38 @@
 <?php
-// public/signup.php
-
 require '../config/db.php';
-require '../config/mail.php'; // Include Brevo configuration
+require '../config/mail.php'; // Ensure mail.php is included for email functionality
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-    $email = $_POST['email'];
-    
-    // Generate OTP
-    $otp = rand(100000, 999999);
-    $otp_expiry = date('Y-m-d H:i:s', strtotime('+15 minutes')); // OTP valid for 15 minutes
+    // Check if POST parameters are set
+    if (isset($_POST['username'], $_POST['password'], $_POST['email'])) {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+        $email = $_POST['email'];
 
-    // Save user details with OTP in the database
-    $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
-    $stmt->execute([
-        'username' => $username,
-        'password' => $password,
-        'email' => $email,
-        'otp' => $otp,
-        'otp_expiry' => $otp_expiry
-    ]);
+        // Hash the password
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Send OTP to user email
-    sendOtpEmail($email, $otp);
+        // Insert user into the database
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (:username, :password, :email)");
+        $result = $stmt->execute([
+            'username' => $username,
+            'password' => $hashedPassword,
+            'email' => $email
+        ]);
 
-    echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for OTP verification.']);
+        if ($result) {
+            // Send OTP email (update mail.php with actual values)
+            // Assume OTP is generated and stored in $otp variable
+            $otp = rand(100000, 999999); // Generate a random OTP
+            sendOtpEmail($email, $username, $otp); // Implement this function in mail.php
+
+            echo json_encode(['status' => 'success', 'message' => 'Signup successful!']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
+    }
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }
