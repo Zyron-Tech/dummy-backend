@@ -1,0 +1,17 @@
+{
+    "name": "codespace/dummy-backend",
+    "autoload": {
+        "psr-4": {
+            "Codespace\\DummyBackend\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Peace Mathew",
+            "email": "zyrontech101@gmail.com"
+        }
+    ],
+    "require": {
+        "sendinblue/api-v3-sdk": "^8.4"
+    }
+}
