@@ -15,3 +15,8 @@
         "sendinblue/api-v3-sdk": "^8.4"
     }
 }
+{
+    "require": {
+        "brevo/brevo-php": "^1.0" // or the appropriate version
+    }
+}
