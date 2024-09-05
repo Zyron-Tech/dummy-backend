@@ -3,7 +3,7 @@
         'name' => 'codespace/dummy-backend',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '4f62d5eeead2a8fde525201386d0707938b06274',
+        'reference' => '6a4d27526a6072cf95ded84f9e24aacba7363cc0',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'codespace/dummy-backend' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '4f62d5eeead2a8fde525201386d0707938b06274',
+            'reference' => '6a4d27526a6072cf95ded84f9e24aacba7363cc0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
