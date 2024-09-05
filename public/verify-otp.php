@@ -1,5 +1,6 @@
 <?php
-require '../config/db.php';
+require '../config/db.php';    // Database connection setup
+require '../config/main.php';  // Include main.php if needed for additional setup
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
