@@ -1,6 +1,8 @@
 <?php
 require '../config/db.php';
 require '../config/mail.php'; // Ensure mail.php is included for email functionality
+// this is for the cors error fix
+require '../config/cors.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if POST parameters are set
