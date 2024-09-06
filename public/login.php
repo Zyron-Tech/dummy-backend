@@ -3,6 +3,8 @@
 
 // Include the database connection file
 require '../config/db.php';
+// this is for the cors error fix
+require '../config/cors.php';
 
 // Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
