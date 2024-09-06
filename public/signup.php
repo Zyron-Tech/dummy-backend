@@ -1,8 +1,7 @@
 <?php
 require '../config/db.php';
 require '../config/mail.php'; // Ensure mail.php is included for email functionality
-// this is for the cors error fix
-require '../config/cors.php';
+require '../config/cors.php'; // CORS fix
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if POST parameters are set
@@ -30,9 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($result) {
             // Send OTP email
-            sendOtpEmail($email, $username, $otp); // Implement this function in mail.php
-
-            echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
+            if (sendOtpEmail($email, $username, $otp)) {
+                echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
+            } else {
+                // If email sending fails, you might want to consider deleting the user or marking the account as unverified
+                echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
+            }
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
         }
