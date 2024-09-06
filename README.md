@@ -54,7 +54,7 @@ Here's a basic HTML/JavaScript example showing how to interact with the backend 
             const formData = new FormData(e.target);
 
             try {
-                const response = await fetch('https://your-backend-domain.com/public/signup.php', {
+                const response = await fetch('https://dummy-backend-gyc3.onrender.com/public/signup.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -68,3 +68,45 @@ Here's a basic HTML/JavaScript example showing how to interact with the backend 
     </script>
 </body>
 </html>
+```
+
+#### Sample Verify Otp Code
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+</head>
+<body>
+    <form id="verifyOtpForm">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="text" name="otp" placeholder="Enter OTP" required>
+        <button type="submit">Verify OTP</button>
+    </form>
+
+    <script>
+        document.getElementById('verifyOtpForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('https://dummy-backend-gyc3.onrender.com/public/verify-otp.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                console.error('Error during OTP verification:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
