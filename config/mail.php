@@ -1,4 +1,6 @@
 <?php
+require __DIR__ . '/../vendor/autoload.php'; // Adjust the path as necessary
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -31,11 +33,10 @@ function sendOtpEmail($email, $name, $otp) {
 
         // Send email
         $mail->send();
-        return true;
+        return true; // Return true if email is sent successfully
     } catch (Exception $e) {
-        // Log error to file
-        error_log('Failed to send OTP email: ' . $mail->ErrorInfo);
-        return false;
+        // Log the error if necessary
+        error_log("Failed to send OTP email: {$mail->ErrorInfo}");
+        return false; // Return false on failure
     }
 }
-?>
