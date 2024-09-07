@@ -17,36 +17,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $otp = rand(100000, 999999); // Generate a random OTP
         $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
 
-        try {
-            // Insert user into the database with OTP and expiry time
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
-            $result = $stmt->execute([
-                'username' => $username,
-                'password' => $hashedPassword,
-                'email' => $email,
-                'otp' => $otp,
-                'otp_expiry' => $otpExpiry
-            ]);
+        // Insert user into the database with OTP and expiry time
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
+        $result = $stmt->execute([
+            'username' => $username,
+            'password' => $hashedPassword,
+            'email' => $email,
+            'otp' => $otp,
+            'otp_expiry' => $otpExpiry
+        ]);
 
-            if ($result) {
-                // Send OTP email
-                if (sendOtpEmail($email, $username, $otp)) {
-                    echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
-                } else {
-                    // If email sending fails, you might want to consider deleting the user or marking the account as unverified
-                    echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
-                }
+        if ($result) {
+            // Send OTP email
+            if (sendOtpEmail($email, $username, $otp)) {
+                echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
             } else {
-                echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
+                // If email sending fails, you might want to consider deleting the user or marking the account as unverified
+                echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
             }
-        } catch (PDOException $e) {
-            // Check for unique constraint violation
-            if ($e->getCode() == 23505) { // PostgreSQL error code for unique violation
-                echo json_encode(['status' => 'error', 'message' => 'This email is already registered. Please log in or use a different email.']);
-            } else {
-                // General error message
-                echo json_encode(['status' => 'error', 'message' => 'An unexpected error occurred. Please try again.']);
-            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
