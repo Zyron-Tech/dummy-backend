@@ -1,4 +1,12 @@
 <?php
+// Enable output buffering to capture any unexpected output
+ob_start();
+
+// Error reporting settings: Log errors instead of displaying them
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php-error.log'); // Ensure logs directory exists
+
 require '../config/db.php';
 require '../config/mail.php'; // Ensure mail.php is included for email functionality
 require '../config/cors.php'; // CORS fix
@@ -76,4 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'message' => 'Invalid request method.'
     ]);
 }
+
+// Flush output buffer to ensure only JSON is sent
+ob_end_flush();
 ?>
