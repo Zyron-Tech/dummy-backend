@@ -10,30 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'];
         $email = $_POST['email'];
 
-        // Validate input
-        if (empty($username) || empty($password) || empty($email)) {
-            echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
-            exit();
-        }
-
         // Hash the password
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Generate OTP and expiry
         $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 30 minutes
+        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
 
         try {
-            // Check if email already exists
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
-            $stmt->execute(['email' => $email]);
-            $emailCount = $stmt->fetchColumn();
-
-            if ($emailCount > 0) {
-                echo json_encode(['status' => 'error', 'message' => 'This email is already registered. Please log in or use a different email.']);
-                exit();
-            }
-
             // Insert user into the database with OTP and expiry time
             $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
             $result = $stmt->execute([
@@ -49,15 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (sendOtpEmail($email, $username, $otp)) {
                     echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
                 } else {
-                    // Handle email sending failure
+                    // If email sending fails, you might want to consider deleting the user or marking the account as unverified
                     echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
                 }
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
             }
         } catch (PDOException $e) {
-            // General error message
-            echo json_encode(['status' => 'error', 'message' => 'An unexpected error occurred. Please try again.']);
+            // Check for unique constraint violation
+            if ($e->getCode() == 23505) { // PostgreSQL error code for unique violation
+                echo json_encode(['status' => 'error', 'message' => 'This email is already registered. Please log in or use a different email.']);
+            } else {
+                // General error message
+                echo json_encode(['status' => 'error', 'message' => 'An unexpected error occurred. Please try again.']);
+            }
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
