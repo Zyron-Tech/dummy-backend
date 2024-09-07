@@ -1,45 +1,32 @@
 <?php
+// public/login.php
+
+// Include the database connection file
 require '../config/db.php';
-require '../config/mail.php'; // Ensure mail.php is included for email functionality
-require '../config/cors.php'; // CORS fix
+// this is for the cors error fix
+require '../config/cors.php';
 
+// Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if POST parameters are set
-    if (isset($_POST['username'], $_POST['password'], $_POST['email'])) {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $email = $_POST['email'];
+    // Get and sanitize user input
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-        // Hash the password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    // Prepare and execute the SQL statement
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        $user = $stmt->fetch();
 
-        // Generate OTP and expiry
-        $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
-
-        // Insert user into the database with OTP and expiry time
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
-        $result = $stmt->execute([
-            'username' => $username,
-            'password' => $hashedPassword,
-            'email' => $email,
-            'otp' => $otp,
-            'otp_expiry' => $otpExpiry
-        ]);
-
-        if ($result) {
-            // Send OTP email
-            if (sendOtpEmail($email, $username, $otp)) {
-                echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
-            } else {
-                // If email sending fails, you might want to consider deleting the user or marking the account as unverified
-                echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
-            }
+        // Verify the user password
+        if ($user && password_verify($password, $user['password'])) {
+            echo json_encode(['status' => 'success', 'message' => 'Login successful!']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid credentials']);
         }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
+    } catch (PDOException $e) {
+        // Handle database errors
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
