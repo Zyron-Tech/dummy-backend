@@ -1,17 +1,7 @@
 <?php
-// Enable output buffering to capture any unexpected output
-ob_start();
-
-// Error reporting settings: Log errors instead of displaying them
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../logs/php-error.log'); // Ensure logs directory exists
-
 require '../config/db.php';
 require '../config/mail.php'; // Ensure mail.php is included for email functionality
 require '../config/cors.php'; // CORS fix
-
-header('Content-Type: application/json'); // Ensure the content type is always JSON
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if POST parameters are set
@@ -25,66 +15,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Generate OTP and expiry
         $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 30 minutes
+        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
 
-        try {
-            // Insert user into the database with OTP and expiry time
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
-            $result = $stmt->execute([
-                'username' => $username,
-                'password' => $hashedPassword,
-                'email' => $email,
-                'otp' => $otp,
-                'otp_expiry' => $otpExpiry
-            ]);
+        // Insert user into the database with OTP and expiry time
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
+        $result = $stmt->execute([
+            'username' => $username,
+            'password' => $hashedPassword,
+            'email' => $email,
+            'otp' => $otp,
+            'otp_expiry' => $otpExpiry
+        ]);
 
-            if ($result) {
-                // Send OTP email
-                if (sendOtpEmail($email, $username, $otp)) {
-                    echo json_encode([
-                        'status' => 'success',
-                        'message' => 'Signup successful! Please check your email for the OTP.'
-                    ]);
-                } else {
-                    echo json_encode([
-                        'status' => 'error',
-                        'message' => 'Signup successful but failed to send OTP email.'
-                    ]);
-                }
+        if ($result) {
+            // Send OTP email
+            if (sendOtpEmail($email, $username, $otp)) {
+                echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
             } else {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Failed to register user.'
-                ]);
+                // If email sending fails, you might want to consider deleting the user or marking the account as unverified
+                echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
             }
-        } catch (PDOException $e) {
-            // Check for unique constraint violation (duplicate email)
-            if ($e->getCode() == 23505) { // PostgreSQL error code for unique violation
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'This email is already registered. Please log in or use a different email.'
-                ]);
-            } else {
-                // General error message
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'An unexpected error occurred. Please try again.'
-                ]);
-            }
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
         }
     } else {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Missing required fields.'
-        ]);
+        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
     }
 } else {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Invalid request method.'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }
-
-// Flush output buffer to ensure only JSON is sent
-ob_end_flush();
 ?>
