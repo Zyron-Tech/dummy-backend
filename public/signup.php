@@ -1,7 +1,17 @@
 <?php
+// Enable output buffering to capture any unexpected output
+ob_start();
+
+// Error reporting settings: Log errors instead of displaying them
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php-error.log'); // Ensure logs directory exists
+
 require '../config/db.php';
 require '../config/mail.php'; // Ensure mail.php is included for email functionality
 require '../config/cors.php'; // CORS fix
+
+header('Content-Type: application/json'); // Ensure the content type is always JSON
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if POST parameters are set
@@ -15,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Generate OTP and expiry
         $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 15 minutes
+        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 30 minutes
 
         try {
             // Insert user into the database with OTP and expiry time
@@ -40,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
             }
         } catch (PDOException $e) {
-            // Check for unique constraint violation
+            // Check for unique constraint violation (duplicate email)
             if ($e->getCode() == 23505) { // PostgreSQL error code for unique violation
                 echo json_encode(['status' => 'error', 'message' => 'This email is already registered. Please log in or use a different email.']);
             } else {
@@ -54,4 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }
+
+// Flush output buffer to ensure only JSON is sent
+ob_end_flush();
 ?>
