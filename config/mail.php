@@ -1,70 +1,41 @@
 <?php
-// Enable output buffering to capture any unexpected output
-ob_start();
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-// Error reporting settings: Log errors instead of displaying them
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/../logs/php-error.log'); // Ensure logs directory exists
+function sendOtpEmail($email, $name, $otp) {
+    $mail = new PHPMailer(true);
 
-require '../config/db.php';
-require '../config/mail.php'; // Ensure mail.php is included for email functionality
-require '../config/cors.php'; // CORS fix
+    try {
+        // SMTP configuration
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'markfestus24@gmail.com'; // Your Gmail address
+        $mail->Password = 'qrzg snll odez snyg'; // Replace with your Gmail App Password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
 
-header('Content-Type: application/json'); // Ensure the content type is always JSON
+        // Sender and recipient settings
+        $mail->setFrom('markfestus24@gmail.com', 'Dummy Backend'); // Adjust sender name
+        $mail->addAddress($email, $name);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if POST parameters are set
-    if (isset($_POST['username'], $_POST['password'], $_POST['email'])) {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $email = $_POST['email'];
+        // Email content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your OTP Code';
+        $mail->Body = '<div style="font-family: Arial, sans-serif; text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <h2 style="color: #4CAF50;">Your OTP Code</h2>
+            <p style="font-size: 24px; font-weight: bold; color: #333; margin: 10px 0;">' . $otp . '</p>
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="font-size: 12px; color: #888;">Credit: <a href="mailto:zyrontech101@gmail.com" style="color: #4CAF50; text-decoration: none;">Zyron-Tech</a></p>
+        </div>';
 
-        // Hash the password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Generate OTP and expiry
-        $otp = rand(100000, 999999); // Generate a random OTP
-        $otpExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // OTP valid for 30 minutes
-
-        try {
-            // Insert user into the database with OTP and expiry time
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, email, otp, otp_expiry) VALUES (:username, :password, :email, :otp, :otp_expiry)");
-            $result = $stmt->execute([
-                'username' => $username,
-                'password' => $hashedPassword,
-                'email' => $email,
-                'otp' => $otp,
-                'otp_expiry' => $otpExpiry
-            ]);
-
-            if ($result) {
-                // Send OTP email
-                if (sendOtpEmail($email, $username, $otp)) {
-                    echo json_encode(['status' => 'success', 'message' => 'Signup successful! Please check your email for the OTP.']);
-                } else {
-                    // If email sending fails, you might want to consider deleting the user or marking the account as unverified
-                    echo json_encode(['status' => 'error', 'message' => 'Signup successful but failed to send OTP email.']);
-                }
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Failed to register user']);
-            }
-        } catch (PDOException $e) {
-            // Check for unique constraint violation (duplicate email)
-            if ($e->getCode() == 23505) { // PostgreSQL error code for unique violation
-                echo json_encode(['status' => 'error', 'message' => 'This email is already registered. Please log in or use a different email.']);
-            } else {
-                // General error message
-                echo json_encode(['status' => 'error', 'message' => 'An unexpected error occurred. Please try again.']);
-            }
-        }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
+        // Send email
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        // Log error to file
+        error_log('Failed to send OTP email: ' . $mail->ErrorInfo);
+        return false;
     }
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }
-
-// Flush output buffer to ensure only JSON is sent
-ob_end_flush();
 ?>
