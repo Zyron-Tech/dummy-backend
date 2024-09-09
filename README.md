@@ -25,6 +25,11 @@ The backend provides RESTful API endpoints for sign-up, login, and OTP verificat
    - **Method**: `POST`
    - **Parameters**: `email`, `otp`
 
+4. **Delete Account Endpoint**: Users can easily delete their account if it is no longer needed
+   - **URL**: `/public/delete_account.php`
+   - **Method**: `POST`
+   - **Parameters**: `email`,`password` 
+
 ### Example Frontend Integration
 
 Here's a basic HTML/JavaScript example showing how to interact with the backend API endpoints using the `fetch` API:
