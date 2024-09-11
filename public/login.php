@@ -24,13 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Prepare and execute the SQL statement
     try {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt = $pdo->prepare("SELECT username, password FROM users WHERE email = :email");
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch();
 
         // Verify the user password
         if ($user && password_verify($password, $user['password'])) {
-            echo json_encode(['status' => 'success', 'message' => 'Login successful!']);
+            // Send username along with the success message
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Login successful!',
+                'username' => $user['username']
+            ]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Invalid credentials']);
         }
